@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,12 +15,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          persist-credentials: true
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-        
+
       - name: Install dependencies
         run: npm install
 
@@ -41,4 +46,5 @@ jobs:
           cp -R build_output/* .
           git add main.js main.js.map
           git commit -m "Update build artifacts" || echo "No changes to commit"
-          git push origin build
+          # Push using the token in the remote URL
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Wenlin88/Obsidian-API-Gateway.git build
