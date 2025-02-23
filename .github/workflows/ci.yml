@@ -41,7 +41,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Start from main branch so that all required plugin files are present
+          # Start from main to have all required plugin files (e.g., manifest.json)
           git checkout main
           # Create or update the 'build' branch based on main
           git checkout -B build
@@ -58,7 +58,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Configure Git user identity globally for the CI runner
+          # Configure Git user identity globally
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
@@ -67,10 +67,10 @@ jobs:
           # Overwrite/update build artifacts
           cp -R build_output/* .
           git add -f main.js main.js.map
-          # Commit without [skip ci] marker so Semantic Release can analyze conventional commits
+          # Commit without [skip ci] so Semantic Release can analyze conventional commits
           git commit -m "Update build artifacts" || echo "No changes to commit"
           
-          # Force-push main branch (if necessary)
+          # Force-push the main branch (if necessary)
           git push --force https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Wenlin88/Obsidian-API-Gateway.git main
 
   release:
@@ -82,13 +82,17 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
           node-version: '18'
+
       - name: Install dependencies
         run: npm ci
+
       - name: Automated Version Bump and Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # You no longer need an NPM token since we are not publishing to npm.
         run: npx semantic-release
