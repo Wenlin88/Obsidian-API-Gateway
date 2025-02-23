@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -23,3 +24,14 @@ jobs:
 
       - name: Build plugin using esbuild
         run: npm run build
+
+      - name: List workspace files (after build)
+        run: ls -al
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: |
+            main.js
+            main.js.map
