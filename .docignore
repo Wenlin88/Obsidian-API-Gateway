@@ -1,0 +1,9 @@
+# With this file we all files and folders which shall be excluded for documentation generation
+# Node modules and log files
+node_modules/
+*.log
+main.js.map
+main.js
+package-lock.json
+Documentation.md
+.git
