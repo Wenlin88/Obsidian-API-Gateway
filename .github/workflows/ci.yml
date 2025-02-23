@@ -1,4 +1,4 @@
-name: Build and Commit Artifacts
+name: Build, Bump Version, and Upload Release Assets
 
 on:
   push:
@@ -9,73 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  build-commit:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          persist-credentials: true
-
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build plugin using esbuild
-        run: npm run build
-
-      - name: Copy build files to temporary folder
-        run: |
-          mkdir build_output
-          cp main.js main.js.map build_output/
-
-      - name: Commit build artifacts to build branch
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Configure Git user identity globally for the CI runner
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Start from main to have all required plugin files (e.g., manifest.json)
-          git checkout main
-          # Create or update the 'build' branch based on main
-          git checkout -B build
-          
-          # Overwrite/update build artifacts
-          cp -R build_output/* .
-          git add -f main.js main.js.map
-          git commit -m "Update build artifacts [skip ci]" || echo "No changes to commit"
-          
-          # Force-push the build branch to override remote changes
-          git push --force https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Wenlin88/Obsidian-API-Gateway.git build
-
-      - name: Commit build artifacts to main branch
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Configure Git user identity globally
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Switch back to the main branch
-          git checkout main
-          # Overwrite/update build artifacts
-          cp -R build_output/* .
-          git add -f main.js main.js.map
-          # Commit without [skip ci] so Semantic Release can analyze conventional commits
-          git commit -m "Update build artifacts" || echo "No changes to commit"
-          
-          # Force-push the main branch (if necessary)
-          git push --force https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Wenlin88/Obsidian-API-Gateway.git main
-
   release:
-    if: github.ref == 'refs/heads/main'
-    needs: build-commit
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository with full history
@@ -91,7 +25,30 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build plugin using esbuild
+        run: npm run build
+
+      - name: List build output
+        run: ls -al
+
       - name: Automated Version Bump and Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
+        run: npx semantic-release || echo "No releasable commits"
+
+      - name: Get Latest Tag
+        id: get_tag
+        run: |
+          # Fetch tags in case semantic-release just created one
+          git fetch --tags
+          echo "::set-output name=tag::$(git describe --abbrev=0 --tags)"
+      
+      - name: Upload Release Assets
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          # Use the latest tag as created by semantic-release
+          tag: ${{ steps.get_tag.outputs.tag }}
+          files: |
+            main.js
+            manifest.json
