@@ -94,5 +94,4 @@ jobs:
       - name: Automated Version Bump and Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # You no longer need an NPM token since we are not publishing to npm.
         run: npx semantic-release
