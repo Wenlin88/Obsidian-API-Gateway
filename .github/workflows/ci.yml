@@ -1,10 +1,9 @@
-name: CI
+name: Build and Commit Artifacts
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build:
@@ -18,20 +17,28 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-
+        
       - name: Install dependencies
         run: npm install
 
       - name: Build plugin using esbuild
         run: npm run build
 
-      - name: List workspace files (after build)
-        run: ls -al
+      - name: Copy build files to temporary folder
+        run: |
+          mkdir build_output
+          cp main.js main.js.map build_output/
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: |
-            main.js
-            main.js.map
+      - name: Commit build artifacts to build branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Checkout or create the 'build' branch
+          git checkout -B build
+          # Replace previous build artifacts with the new ones
+          cp -R build_output/* .
+          git add main.js main.js.map
+          git commit -m "Update build artifacts" || echo "No changes to commit"
+          git push origin build
