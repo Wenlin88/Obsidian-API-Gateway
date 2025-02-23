@@ -1,8 +1,8 @@
 {
-  "name": "api-bridge",
-  "version": "1.0.1",
+  "name": "obsidian-api-bridge",
+  "version": "0.0.1",
   "main": "main.js",
-  "author": "Your Name",
+  "author": "Henri Wenlin",
   "license": "MIT",
   "scripts": {
     "dev": "node esbuild.config.mjs",
