@@ -1,4 +1,4 @@
-name: Build, Bump Version, and Upload Release Assets
+name: Build, Bump Version, and Release
 
 on:
   push:
@@ -15,40 +15,20 @@ jobs:
       - name: Checkout repository with full history
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # Needed by semantic-release to analyze all commits
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-
+  
       - name: Install dependencies
         run: npm ci
-
+      
       - name: Build plugin using esbuild
         run: npm run build
 
-      - name: List build output
-        run: ls -al
-
-      - name: Automated Version Bump and Release
+      - name: Run Semantic Release to bump version and create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release || echo "No releasable commits"
-
-      - name: Get Latest Tag
-        id: get_tag
-        run: |
-          # Fetch tags in case semantic-release just created one
-          git fetch --tags
-          echo "::set-output name=tag::$(git describe --abbrev=0 --tags)"
-      
-      - name: Upload Release Assets
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          # Use the latest tag as created by semantic-release
-          tag: ${{ steps.get_tag.outputs.tag }}
-          files: |
-            main.js
-            manifest.json
+        run: npx semantic-release
