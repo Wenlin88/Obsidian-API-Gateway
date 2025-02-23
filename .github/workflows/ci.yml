@@ -1,4 +1,4 @@
-name: CI
+name: Build and Commit Artifacts
 
 on:
   push:
@@ -33,30 +33,45 @@ jobs:
           mkdir build_output
           cp main.js main.js.map build_output/
 
-      - name: Commit build artifacts to build branch and main branch
+      - name: Commit build artifacts to build branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # === Update build branch ===
-          # Start from main so that all required plugin files (like manifest.json) are present.
+          # Configure Git user identity globally for the CI runner
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Start from main branch so that all required plugin files are present
           git checkout main
-          # Ensure build branch is created/updated off main.
+          # Create or update the 'build' branch based on main
           git checkout -B build
-          # Overwrite/update build artifacts.
+          
+          # Overwrite/update build artifacts
           cp -R build_output/* .
           git add -f main.js main.js.map
           git commit -m "Update build artifacts [skip ci]" || echo "No changes to commit"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Wenlin88/Obsidian-API-Gateway.git build
+          
+          # Force-push the build branch to override remote changes
+          git push --force https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Wenlin88/Obsidian-API-Gateway.git build
 
-          # === Update main branch as well ===
+      - name: Commit build artifacts to main branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Configure Git user identity globally for the CI runner
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Switch back to the main branch
           git checkout main
+          # Overwrite/update build artifacts
           cp -R build_output/* .
           git add -f main.js main.js.map
-          # Here we intentionally do not add a [skip ci] marker so that there’s a chance for Semantic Release 
-          # to detect conventional commits if they exist. However, if your commit message should not trigger a release,
-          # you may add [skip ci] only when appropriate.
+          # Commit without [skip ci] marker so Semantic Release can analyze conventional commits
           git commit -m "Update build artifacts" || echo "No changes to commit"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Wenlin88/Obsidian-API-Gateway.git main
+          
+          # Force-push main branch (if necessary)
+          git push --force https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Wenlin88/Obsidian-API-Gateway.git main
 
   release:
     if: github.ref == 'refs/heads/main'
@@ -67,15 +82,12 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-
       - name: Install dependencies
         run: npm ci
-
       - name: Automated Version Bump and Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
