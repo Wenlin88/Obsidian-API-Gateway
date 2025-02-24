@@ -9,6 +9,11 @@
     "build": "node esbuild.config.mjs production"
   },
   "devDependencies": {
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/exec": "^7.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.1",
+    "@semantic-release/release-notes-generator": "^14.0.3",
     "@types/node": "^18.0.0",
     "esbuild": "^0.25.0",
     "obsidian": "latest",
