@@ -1,8 +1,8 @@
 {
   "id": "obsidian-api-bridge",
   "name": "Obsidian API Bridge",
-  "version": "0.0.1",
-  "minAppVersion": "0.0.1",
+  "version": "v0.0.2",
+  "minAppVersion": "v0.0.1",
   "description": "A secure local API server plugin that exposes endpoints for reading, writing, and editing your Obsidian notes.",
   "author": "Henri Wenlin",
   "authorUrl": "https://github.com/Wenlin88",
