@@ -28,6 +28,9 @@ jobs:
       - name: Build plugin using esbuild
         run: npm run build
 
+      - name: Run tests using Jest
+        run: npm test
+
       - name: Run Semantic Release to bump version and create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
