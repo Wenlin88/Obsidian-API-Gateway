@@ -168,6 +168,29 @@ Alternatively, manually test using your preferred REST client at the base URL:
 ```
 http://localhost:27124/api
 ```
+
+### Running Tests with Jest
+
+To run the automated tests using Jest, follow these steps:
+
+1. **Install Dependencies:**
+
+   If you haven't already, install the necessary dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. **Run Tests:**
+
+   Execute the test script:
+
+   ```bash
+   npm test
+   ```
+
+This will run all the test cases defined in the `tests` directory and provide you with a summary of the test results.
+
 ---
 
 ## Build and Deployment
